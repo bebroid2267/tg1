@@ -540,37 +540,37 @@ namespace tg1
         }
 
 
-        private  static DateTime CheckTimeApply(DateTime dateapply)
-        {
-            DateTime datenow = DateTime.Now;
+        //private  static DateTime CheckTimeApply(DateTime dateapply)
+        //{
+        //    DateTime datenow = DateTime.Now;
 
-            TimeSpan interval = dateapply - datenow;
+        //    TimeSpan interval = dateapply - datenow;
 
-            if (interval.Days == 3)
-            {
+        //    if (interval.Days == 3)
+        //    {
                 
-            }
-            else if (interval.Days == 2)
-            {
+        //    }
+        //    else if (interval.Days == 2)
+        //    {
                  
-            }
-            else if (interval.Days == 1)
-            {
+        //    }
+        //    else if (interval.Days == 1)
+        //    {
 
-                if (interval.Hours == 2)
-                {
+        //        if (interval.Hours == 2)
+        //        {
 
-                }
-                else if (interval.Hours == 1)
-                {
+        //        }
+        //        else if (interval.Hours == 1)
+        //        {
 
-                }
+        //        }
 
-            }
+        //    }
             
 
 
-        }
+        //}
 
 
         static async Task CheckHourlyChanges(string status, Message message, ITelegramBotClient bot )

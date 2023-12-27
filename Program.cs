@@ -539,7 +539,7 @@ namespace tg1
 
         }
 
-
+        string test;
         //private  static DateTime CheckTimeApply(DateTime dateapply)
         //{
         //    DateTime datenow = DateTime.Now;

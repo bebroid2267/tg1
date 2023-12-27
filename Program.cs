@@ -72,6 +72,8 @@ namespace tg1
         {
             var message = update.Message;
 
+
+
             if (update.Type == UpdateType.Message && update?.Message?.Text != null)
             {
                 await HandleMessage(bot, update.Message);
@@ -83,6 +85,14 @@ namespace tg1
                 await HandleCallbackQuery(bot, update.CallbackQuery);
                 return;
             }
+
+
+
+
+        }
+
+        private async Task CheckDate()
+        {
 
 
 
@@ -558,19 +568,25 @@ namespace tg1
             }
             else if (interval.Days == 1)
             {
+                return "1 день";
 
-                if (interval.Hours == 2)
-                {
-                    return "2 часа";
-                }
-                else if (interval.Hours == 1)
-                {
-                    return "1 час";
-                }
+                
                 
             }
+            if(interval.Hours == 2)
+                {
+                return "2 часа";
+            }
+             if (interval.Hours == 1)
+            {
+                return "1 час";
+            }
+            else
+            {
+                return "нету даты";
+            }
 
-            return "null";
+            
 
         }
 
@@ -635,6 +651,24 @@ namespace tg1
                     await bot.SendTextMessageAsync(message.Chat.Id, "Все заявки имеют актуальную дату");
                     return;
                 }
+                try
+                {
+                    DateTime date = Convert.ToDateTime(dateOfApply);
+                    string remains = CheckTimeApply(date);
+
+                    if (remains != "нету даты")
+                    {
+                        await bot.SendTextMessageAsync(message.Chat.Id, $"До окончания подачи заявок осталось: {remains} ");
+
+                    }
+
+                }
+                catch (FormatException)
+                {
+
+                    await bot.SendTextMessageAsync(message.Chat.Id,"ошибка в дате заявки (чек даты))");
+                }
+                
 
                 count++;
             }

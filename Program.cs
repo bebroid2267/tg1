@@ -540,13 +540,13 @@ namespace tg1
         }
 
         
-        private static async Task<string> CheckTimeApply(DateTime dateapply)
+        private static string CheckTimeApply(DateTime dateapply)
         {
             DateTime datenow = DateTime.Now;
 
             
             TimeSpan interval = dateapply - datenow;
-
+            
             if (interval.Days == 3)
             {
                 return "3 дня";
@@ -567,10 +567,10 @@ namespace tg1
                 {
                     return "1 час";
                 }
-                return "null";
+                
             }
 
-
+            return "null";
 
         }
 

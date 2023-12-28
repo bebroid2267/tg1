@@ -89,15 +89,12 @@ namespace tg1
 
 
 
-        }
-
-        private async Task CheckDate()
-        {
-
 
 
 
         }
+
+        
 
         async static Task HandleCallbackQuery(ITelegramBotClient bot, CallbackQuery? callbackQuery)
         {
@@ -554,37 +551,51 @@ namespace tg1
         {
             DateTime datenow = DateTime.Now;
 
-            
-            TimeSpan interval = dateapply - datenow;
-            
-            if (interval.Days == 3)
+            try
             {
-                return "3 дня";
+                TimeSpan interval = dateapply - datenow;
 
-            }
-            else if (interval.Days == 2)
-            {
-                return "2 дня";
-            }
-            else if (interval.Days == 1)
-            {
-                return "1 день";
-
-                
-                
-            }
-            if(interval.Hours == 2)
+                if (interval.Minutes >= 0) 
                 {
-                return "2 часа";
+                    if (interval.Days == 3)
+                    {
+                        return "3 дня";
+
+                    }
+                    else if (interval.Days == 2)
+                    {
+                        return "2 дня";
+                    }
+                    else if (interval.Days == 1)
+                    {
+                        return "1 день";
+
+                    }
+                    if (interval.Days == 0 && interval.Hours == 2)
+                    {
+                        return "2 часа";
+                    }
+                    if (interval.Days == 0 && interval.Hours == 1)
+                    {
+                        return "1 час";
+                    }
+                    return "нету даты";
+                }
+
+                else
+                {
+                    return "нету даты";
+                }
+
+
+
             }
-             if (interval.Hours == 1)
+            catch (Exception)
             {
-                return "1 час";
-            }
-            else
-            {
+
                 return "нету даты";
             }
+            
 
             
 
@@ -634,7 +645,7 @@ namespace tg1
                     dateOfApply = "не найдена дата";
                 }
 
-                if (!dateOfApply.Contains(OlddateSub) )
+                if (dateOfApply != OlddateSub.TrimStart())
                 {
                     
                     Baza.UpdateDateBase(urlSub, dateOfApply);
@@ -645,11 +656,15 @@ namespace tg1
 
                     await bot.SendTextMessageAsync(chatId, info, parseMode: ParseMode.Html);
 
+                    
+
+
                 }
-                else if (dateOfApply.Contains(OlddateSub))
+                else if (dateOfApply == OlddateSub.TrimStart())
                 {
                     await bot.SendTextMessageAsync(message.Chat.Id, "Все заявки имеют актуальную дату");
-                    return;
+                    
+                    
                 }
                 try
                 {
@@ -658,9 +673,15 @@ namespace tg1
 
                     if (remains != "нету даты")
                     {
-                        await bot.SendTextMessageAsync(message.Chat.Id, $"До окончания подачи заявок осталось: {remains} ");
 
+                            await bot.SendTextMessageAsync(message.Chat.Id, $"До окончания подачи заявок осталось: {remains} ");
+                          
                     }
+
+
+                       
+
+                    
 
                 }
                 catch (FormatException)

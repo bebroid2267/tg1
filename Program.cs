@@ -17,6 +17,7 @@ using Telegram.Bots;
 using HtmlAgilityPack;
 using System.Diagnostics.Eventing.Reader;
 using System.Collections.Generic;
+using Quartz;
 
 
 
@@ -29,7 +30,7 @@ namespace tg1
 {
 
 
-    internal class Program
+    public class Program
     {
 
         enum BotState
@@ -59,8 +60,9 @@ namespace tg1
               
 
             bot.StartReceiving(Update, Error);
-           
-           
+            Scheduler sch = new();
+            await sch.StartScheduler();
+
             Console.ReadLine();
 
            
@@ -72,6 +74,7 @@ namespace tg1
         {
             var message = update.Message;
 
+            
 
 
             if (update.Type == UpdateType.Message && update?.Message?.Text != null)

@@ -2,24 +2,32 @@
 using Quartz;
 using System.Threading.Tasks;
 using Quartz.Impl;
+using tg1;
+using System.Net.NetworkInformation;
+using Telegram.Bot;
+using Telegram.Bot.Types;
 
 
 
 public class Scheduler
 {
-	public async Task StartSchedluer()
+    
+
+
+    public async Task StartScheduler(string status, Message message, ITelegramBotClient bot)
 	{
 
-		IShcedulerFactory sch = new();
+        ISchedulerFactory sch = new StdSchedulerFactory();
 		IScheduler shcd = await sch.GetScheduler();
 		await shcd.Start();
+		
 
 		IJobDetail job = JobBuilder.Create<DailyJob>().Build();
 
 		ITrigger trigger = TriggerBuilder.Create()
 			.WithIdentity("dalyTrigger", "group1")
 			.StartNow()
-			.WitghSchedule(CronScheduleBuilder.DailyAtHourAndMinute(0, 0))
+			.WithSchedule(CronScheduleBuilder.DailyAtHourAndMinute(0, 0))
 			.Build();
 
 		await shcd.ScheduleJob(job, trigger);
@@ -31,10 +39,24 @@ public class Scheduler
 
 public class DailyJob : IJob
 {
-	public async Task Execute(IJobExecutionContext context)
-	{
+	string status;
+	Message message; 
+	ITelegramBotClient bot;
 
-       await Program.CheckHourlyChanges();
+	public DailyJob(string status, Message message, ITelegramBotClient bot)
+	{
+		this.status = status;
+		this.message = message;
+		this.bot = bot;
+
+
+
+	}
+
+	public async Task Execute(IJobExecutionContext context)
+    {
+
+       await Program.CheckHourlyChanges(status,  message,  bot);
 
     }
 	

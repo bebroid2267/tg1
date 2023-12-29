@@ -18,6 +18,7 @@ using HtmlAgilityPack;
 using System.Diagnostics.Eventing.Reader;
 using System.Collections.Generic;
 using Quartz;
+using Quartz.Impl;
 
 
 
@@ -54,40 +55,58 @@ namespace tg1
 
         
 
-        static  void Main(string[] args)
+        static void Main(string[] args)
         {
             
             var bot = new TelegramBotClient("6655981877:AAHYzbmbjF3ZM5kzBQhuYADangqCCDptB04");
-              
 
+            var scheduler = new Scheduler();
+            int offset = 0;
+
+            CancellationToken cts = new() ;
             bot.StartReceiving(Update, Error);
-            Scheduler sch = new();
-            await sch.StartScheduler();
-
             Console.ReadLine();
+            while (true)
+            {
+                var updates = bot.GetUpdatesAsync(offset).Result;
+                foreach (var update in updates)
+                {
+                    Update(bot, update,cts, scheduler ).Wait();
+                    offset = update.Id + 1;
+
+                }
+            }
+            
+
+            
+            
+
+            
 
            
 
 
         }
 
-        async private static Task Update(ITelegramBotClient bot, Update update, CancellationToken cts)
+        async private static Task Update(ITelegramBotClient bot, Update update, CancellationToken cts, Scheduler scheduler)
         {
             var message = update.Message;
 
             
 
-
             if (update.Type == UpdateType.Message && update?.Message?.Text != null)
             {
                 await HandleMessage(bot, update.Message);
-                return;
+                var data = new DailyJobData("в работе", message, bot);
+
+                Scheduler sch = new();
+                await sch.StartScheduler(data);
             }
 
             if (update.Type == UpdateType.CallbackQuery)
             {
                 await HandleCallbackQuery(bot, update.CallbackQuery);
-                return;
+                
             }
 
 
@@ -606,7 +625,7 @@ namespace tg1
         }
 
 
-        static async Task CheckHourlyChanges(string status, Message message, ITelegramBotClient bot )
+        public static async Task CheckHourlyChanges(string status, Message message, ITelegramBotClient bot )
         {
             List<string> updatedApply = new List<string>();
             int count = 1;
@@ -794,8 +813,77 @@ namespace tg1
         }
         
     }
+    public class Scheduler
+    {
 
-            
 
-            
+
+        public async Task StartScheduler(DailyJobData data)
+        {
+
+            ISchedulerFactory sch = new StdSchedulerFactory();
+            IScheduler shcd = await sch.GetScheduler();
+            await shcd.Start();
+
+            var jobKey = new JobKey("dailyJob", "group1");
+            if (await shcd.CheckExists(jobKey))
+            {
+                await shcd.DeleteJob(jobKey);
+            }
+
+
+            IJobDetail job = JobBuilder.Create<DailyJob>()
+                .UsingJobData(new JobDataMap { {"data",data } })
+                .WithIdentity("dailyJob", "group1")
+                .Build();
+
+            ITrigger trigger = TriggerBuilder.Create()
+                .WithIdentity("dailyTrigger", "group1")
+                .StartNow()
+                .WithSimpleSchedule(x=> x
+                .WithRepeatCount(10)
+                .WithInterval(TimeSpan.FromSeconds(10)))
+                .Build();
+
+            await shcd.ScheduleJob(job, trigger);
+
+        }
+
+
+    }
+
+    public class DailyJob : IJob
+    {
+        public readonly DailyJobData data;
+
+        public DailyJob(DailyJobData date)
+        {
+
+            data = date;
+        }
+
+        public async Task Execute(IJobExecutionContext context)
+        {
+
+            await Program.CheckHourlyChanges(data.status,data.message,data.bot);
+
+        }
+
+
+
+    }
+
+    public class DailyJobData
+    {
+        public string status { get; set; }
+        public Message message { get; set; }
+        public ITelegramBotClient bot { get; set; }
+
+        public DailyJobData(string status, Message message, ITelegramBotClient bot)
+        {
+            this.message = message;
+            this.status = status;
+            this.bot = bot;
+        }
+    }
 }    

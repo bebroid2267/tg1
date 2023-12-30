@@ -60,22 +60,12 @@ namespace tg1
             
             var bot = new TelegramBotClient("6655981877:AAHYzbmbjF3ZM5kzBQhuYADangqCCDptB04");
 
-            var scheduler = new Scheduler();
-            int offset = 0;
+           
 
-            CancellationToken cts = new() ;
+           
             bot.StartReceiving(Update, Error);
             Console.ReadLine();
-            while (true)
-            {
-                var updates = bot.GetUpdatesAsync(offset).Result;
-                foreach (var update in updates)
-                {
-                    Update(bot, update,cts, scheduler ).Wait();
-                    offset = update.Id + 1;
-
-                }
-            }
+            
             
 
             
@@ -88,7 +78,7 @@ namespace tg1
 
         }
 
-        async private static Task Update(ITelegramBotClient bot, Update update, CancellationToken cts, Scheduler scheduler)
+        async private static Task Update(ITelegramBotClient bot, Update update, CancellationToken cts)
         {
             var message = update.Message;
 

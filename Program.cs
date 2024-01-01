@@ -8,9 +8,9 @@ using Telegram.Bot.Types.ReplyMarkups;
 using Microsoft.Data.SqlClient;
 using System.Data;
 using Telegram.Bots.Http;
-using System.Threading;
+
 using System.Threading.Tasks;
-using System.Timers;
+
 using static System.Net.Mime.MediaTypeNames;
 using Telegram.Bot.Types;
 using Telegram.Bot.Exceptions;
@@ -18,6 +18,8 @@ using Telegram.Bots;
 using HtmlAgilityPack;
 using System.Diagnostics.Eventing.Reader;
 using System.Collections.Generic;
+using Newtonsoft.Json.Converters;
+using Quartz.Impl.AdoJobStore;
 
 namespace tg1
 {
@@ -43,22 +45,23 @@ namespace tg1
         }
         static BotState currentState = BotState.Main;
         static string state;
-        private Timer timer;
+        private static Timer timer;
+        private static int isTimerSet;
         
 
         static void Main(string[] args)
         {
-            
+
             var bot = new TelegramBotClient("6655981877:AAHYzbmbjF3ZM5kzBQhuYADangqCCDptB04");
-            
-           
+
+
             bot.StartReceiving(Update, Error);
 
-           
+
 
             Console.ReadLine();
-            
-            
+
+
         }
 
         async private static Task Update(ITelegramBotClient bot, Update update, CancellationToken cts)
@@ -67,30 +70,69 @@ namespace tg1
 
             
 
-            if (update.Type == UpdateType.Message && update?.Message?.Text != null)
-            {
-                await HandleMessage(bot, update.Message);
-                var data = new DailyJobData("в работе", message, bot);
 
-                Scheduler sch = new();
-                await sch.StartScheduler(data);
-            }
 
-            if (update.Type == UpdateType.CallbackQuery)
+            if (update.Type == UpdateType.Message && update?.Message?.Text != null || update.Type == UpdateType.CallbackQuery)
             {
-                await HandleCallbackQuery(bot, update.CallbackQuery);
+                if (update.Type == UpdateType.Message && update?.Message?.Text != null)
+                {
+                    await HandleMessage(bot, update.Message);
+                }
+                if (update.Type == UpdateType.CallbackQuery)
+                {
+                    await HandleCallbackQuery(bot, update.CallbackQuery);
+                }
+                int days = await CheckHourlyChanges("в работе", message, bot);
+
+                TimerCallback callback = new TimerCallback(async delegate (object state)
+                {
+                   await CheckHourlyChanges("в работе", message, bot);
+                    
+                });
+
+                if (timer != null && isTimerSet == 30)
+                {
+                    if (days == 1)
+                    {
+                        var times = 900 * 1000;
+                        timer = new Timer(callback,null,100,30000);
+                        isTimerSet = 30;
+
+
+                    }
+                    else if (days == 2)
+                    {
+                        var times = 1800 * 1000;
+                        timer = new Timer(callback,null,100,60000);
+                        isTimerSet = 60;
+                    }
+                }
+                else if (timer == null)
+                {
+                    if (days == 1)
+                    {
+                        var times = 900 * 1000;
+                        timer = new Timer(callback, null, 100, 30000);
+                        isTimerSet = 30;
+
+
+                    }
+                    else if (days == 2)
+                    {
+                        var times = 1800 * 1000;
+                        timer = new Timer(callback, null, 100, 60000);
+                        isTimerSet = 60;
+                    }
+                }
+                
+
+                
                 
             }
 
-
-
-
-
-
-
         }
 
-        
+
 
         async static Task HandleCallbackQuery(ITelegramBotClient bot, CallbackQuery? callbackQuery)
         {
@@ -120,7 +162,7 @@ namespace tg1
                 await bot.SendTextMessageAsync(callbackQuery.Message.Chat.Id, "вы хотите купить товар2");
                 return;
             }
-            else if (callbackQuery.Data == "item3" )
+            else if (callbackQuery.Data == "item3")
             {
                 state = "item3";
                 BotOnCallbackQueryReceived(bot, callbackQuery, state);
@@ -149,7 +191,7 @@ namespace tg1
             }
             else if (state == "back")
             {
-                
+
 
                 await bot.EditMessageTextAsync(
                 callBackQueary.Message.Chat.Id,
@@ -166,7 +208,7 @@ namespace tg1
         async static Task HandleMessage(ITelegramBotClient bot, Message message)
         {
             var mess = message.Text;
-            
+
             string chatid = message.Chat.Id.ToString();
             if (mess == "/start")
             {
@@ -233,8 +275,8 @@ namespace tg1
 
 
 
-                    
-                    
+
+
                     Apply += $"<a href='" + urlSub + $"'>Заявка № </a> \n " + infoSub + Environment.NewLine;
                     count++;
 
@@ -335,8 +377,8 @@ namespace tg1
                     {
                         await bot.SendTextMessageAsync(message.Chat.Id, " Нет такого тендера");
                     }
-                    
-                    
+
+
                 }
                 catch (Exception)
                 {
@@ -363,8 +405,8 @@ namespace tg1
                 message.MessageId - 1,
                 $"Данный тендер отсутствует в боте");
 
-                    
-                   
+
+
                 }
 
                 else
@@ -373,9 +415,9 @@ namespace tg1
 
                     await bot.EditMessageTextAsync(
                 message.Chat.Id,
-                message.MessageId -1,
+                message.MessageId - 1,
                 $"Тендер убран в удаленные");
-                    
+
 
                 }
 
@@ -403,14 +445,14 @@ namespace tg1
 
                     var nodeName = document.DocumentNode.SelectNodes("(//div[@class='registry-entry__body-value'])[1]");
                     var nodeExists = document.DocumentNode.SelectNodes("(//span[@class='cardMainInfo__content'])[1]");
-                    
+
                     var customer = document.DocumentNode.SelectNodes("(//a[@target='_blank'])[6]");
 
 
 
-                    if (nodeName != null && customer != null )
+                    if (nodeName != null && customer != null)
                     {
-                        
+
                         nameOfApply = nodeName.First().InnerText.Trim();
                     }
                     else if (nodeName == null && nodeExists != null && customer != null)
@@ -436,9 +478,9 @@ namespace tg1
                         dateOfApply = "не найдена дата";
                     }
 
-                    
-                   
-                      var result =   Baza.AddTender(mess, numberOfApply, dateOfApply, nameOfApply,status, message.Chat.Id.ToString());
+
+
+                    var result = Baza.AddTender(mess, numberOfApply, dateOfApply, nameOfApply, status, message.Chat.Id.ToString());
 
                     if (result == true)
                     {
@@ -450,7 +492,6 @@ namespace tg1
                 $"Заявка успешно добавлена");
                         
 
-                        
                     }
                     else if (result == false)
                     {
@@ -458,16 +499,15 @@ namespace tg1
 
                         await bot.EditMessageTextAsync(
                     message.Chat.Id,
-                    message.MessageId-1,
+                    message.MessageId - 1,
                     $"Тендер уже есть в базе");
-                            
 
-                        
                     }
-                        
 
 
-                        
+
+
+
 
                     currentState = BotState.Main;
 
@@ -491,7 +531,7 @@ namespace tg1
                 if (Baza.AddApply(url, status) == true)
                 {
                     await bot.DeleteMessageAsync(message.Chat.Id, message.MessageId);
-                    await bot.EditMessageTextAsync(message.Chat.Id,message.MessageId - 1, "Данный тендер отсутствует в боте");
+                    await bot.EditMessageTextAsync(message.Chat.Id, message.MessageId - 1, "Данный тендер отсутствует в боте");
                     return;
                 }
 
@@ -499,13 +539,13 @@ namespace tg1
                 {
                     await bot.DeleteMessageAsync(message.Chat.Id, message.MessageId);
 
-                    await bot.EditMessageTextAsync(message.Chat.Id,message.MessageId - 1, "Тендер убран из рабочих в поданные заявки");
+                    await bot.EditMessageTextAsync(message.Chat.Id, message.MessageId - 1, "Тендер убран из рабочих в поданные заявки");
                     return;
                 }
-                
+
             }
 
-            else if(mess.ToLower() == "товары")
+            else if (mess.ToLower() == "товары")
             {
                 await bot.SendTextMessageAsync(message.Chat.Id, "Выберите категорию:", replyMarkup: GetButtons2());
                 return;
@@ -517,7 +557,7 @@ namespace tg1
 
                 return;
             }
-            
+
 
             else
             {
@@ -542,17 +582,22 @@ namespace tg1
 
         }
 
-        
+
         private static string CheckTimeApply(DateTime dateapply)
         {
             DateTime datenow = DateTime.Now;
 
             try
             {
+                
                 TimeSpan interval = dateapply - datenow;
 
-                if (interval.Minutes >= 0) 
+                if (interval.Minutes >= 0)
                 {
+                    if (interval.Days > 3 && interval.Hours > 5)
+                    {
+                        return "много";
+                    }
                     if (interval.Days == 3)
                     {
                         return "3 дня";
@@ -580,7 +625,7 @@ namespace tg1
 
                 else
                 {
-                    return "нету даты";
+                    return "некорректная дата (закончился срок)";
                 }
 
 
@@ -591,14 +636,14 @@ namespace tg1
 
                 return "нету даты";
             }
-            
 
-            
+
+
 
         }
 
 
-        public static async Task CheckHourlyChanges(string status, Message message, ITelegramBotClient bot )
+        public static async Task<int> CheckHourlyChanges(string status, Message message, ITelegramBotClient bot)
         {
             List<string> updatedApply = new List<string>();
             int count = 1;
@@ -610,86 +655,111 @@ namespace tg1
             string chatId = string.Empty;
             string newDateSub = string.Empty;
             string nameApply = string.Empty;
+            int dayOfApply = 0;
 
-            foreach (var apply in  Baza.AllWork(status, 3))
+            int dayz = 0;
+            if (message != null)
             {
-                
-                int index = apply.IndexOf(' ');
-                int index2 = apply.IndexOf('_');
-                int index3 = apply.LastIndexOf(' ');
-                urlSub = apply.Substring(0, index);
-                OlddateSub = apply.Substring(index, index2 - index);
-                nameApply = apply.Substring(index2 + 1, index3 - index2);
-                chatId = apply.Substring(index3);
-                
-
-                HtmlDocument document = html.Load(urlSub);
-                var node = document.DocumentNode.SelectSingleNode("(//div[@class='data-block__value'])[3]");
-                var dateOfApply = string.Empty;
-                var node2 = document.DocumentNode.SelectSingleNode("(//span[@class='cardMainInfo__content'])[5]");
-
-                if (node != null)
+                foreach (var apply in Baza.AllWork(status, 3))
                 {
-                    dateOfApply = node.InnerText.Trim();
-                }
-                else if (node2 != null)
-                {
-                    dateOfApply = node2.InnerText.Trim();
-                }
-                else if (node == null && node2 == null)
-                {
-                    dateOfApply = "не найдена дата";
-                }
 
-                if (dateOfApply != OlddateSub.TrimStart())
-                {
-                    
-                    Baza.UpdateDateBase(urlSub, dateOfApply);
-
-                    updatedApply.Add(urlSub);
-
-                    string info = $"Внимание - изменение даты окончания подачи заявок \n   <a href='" + urlSub + $"'> Заявка № {count}</a> \n  - {nameApply} \n - {dateOfApply}";
-
-                    await bot.SendTextMessageAsync(chatId, info, parseMode: ParseMode.Html);
-
-                    
+                    int index = apply.IndexOf(' ');
+                    int index2 = apply.IndexOf('_');
+                    int index3 = apply.LastIndexOf(' ');
+                    urlSub = apply.Substring(0, index);
+                    OlddateSub = apply.Substring(index, index2 - index);
+                    nameApply = apply.Substring(index2 + 1, index3 - index2);
+                    chatId = apply.Substring(index3);
 
 
-                }
-                else if (dateOfApply == OlddateSub.TrimStart())
-                {
-                    await bot.SendTextMessageAsync(message.Chat.Id, "Все заявки имеют актуальную дату");
-                    
-                    
-                }
-                try
-                {
-                    DateTime date = Convert.ToDateTime(dateOfApply);
-                    string remains = CheckTimeApply(date);
+                    HtmlDocument document = html.Load(urlSub);
+                    var node = document.DocumentNode.SelectSingleNode("(//div[@class='data-block__value'])[3]");
+                    var dateOfApply = string.Empty;
+                    var node2 = document.DocumentNode.SelectSingleNode("(//span[@class='cardMainInfo__content'])[5]");
 
-                    if (remains != "нету даты")
+                    if (node != null)
+                    {
+                        dateOfApply = node.InnerText.Trim();
+                    }
+                    else if (node2 != null)
+                    {
+                        dateOfApply = node2.InnerText.Trim();
+                    }
+                    else if (node == null && node2 == null)
+                    {
+                        dateOfApply = "не найдена дата";
+                    }
+
+                    if (dateOfApply != OlddateSub.TrimStart())
                     {
 
-                            await bot.SendTextMessageAsync(message.Chat.Id, $"Внимание - окончание подачи заявок через {remains} \n   <a href='" + urlSub + $"'> ссылка </a> \n  - {nameApply} \n - {dateOfApply}", parseMode: ParseMode.Html);
-                          
+                        Baza.UpdateDateBase(urlSub, dateOfApply);
+
+                        updatedApply.Add(urlSub);
+
+                        string info = $"Внимание - изменение даты окончания подачи заявок \n   <a href='" + urlSub + $"'> Заявка № {count}</a> \n  - {nameApply} \n - {dateOfApply}";
+
+                        await bot.SendTextMessageAsync(chatId, info, parseMode: ParseMode.Html);
+
+
+
+
+                    }
+                    
+                    try
+                    {
+                        if (dateOfApply != "не найдена дата")
+                        {
+
+
+                            DateTime date = Convert.ToDateTime(dateOfApply);
+                            string remains = CheckTimeApply(date);
+
+                            if (remains != "нету даты" && !remains.Contains("некорректная"))
+                            {
+
+                                await bot.SendTextMessageAsync(message.Chat.Id, $"Внимание - окончание подачи заявок через {remains} \n   <a href='" + urlSub + $"'> ссылка </a> \n  - {nameApply} \n - {dateOfApply}", parseMode: ParseMode.Html);
+
+
+
+                                if (remains == "1 день")
+                                {
+                                    dayOfApply = 1;
+                                    dayz = 1;
+                                }
+                                else
+                                {
+                                    dayOfApply = 2;
+                                }
+                            }
+                            else if (remains.Contains("некорректная"))
+                            {
+                                await bot.SendTextMessageAsync(message.Chat.Id, $"ТЕСТ - УСПЕШНО - окончание подачи заявок через {remains} \n   <a href='" + urlSub + $"'> ссылка </a> \n  - {nameApply} \n - {dateOfApply}", parseMode: ParseMode.Html);
+
+                            }
+                        }
+                    }
+                    catch (FormatException)
+                    {
+
+                        await bot.SendTextMessageAsync(message.Chat.Id, "ошибка в дате заявки (чек даты))");
                     }
 
 
-                       
-
-                    
-
+                    count++;
                 }
-                catch (FormatException)
-                {
-
-                    await bot.SendTextMessageAsync(message.Chat.Id,"ошибка в дате заявки (чек даты))");
-                }
-                
-
-                count++;
             }
+            if (dayz == 1)
+            {
+                return dayz;
+            }
+            else 
+            {
+                return 2;
+            }
+           
             
+
         }
 
 
@@ -702,7 +772,7 @@ namespace tg1
                    InlineKeyboardButton.WithCallbackData(text: "Товар1", "item1"),
                     InlineKeyboardButton.WithCallbackData(text: "Товар2", "item2"),
 
-                    
+
 
                 },
                 new[]
@@ -724,9 +794,9 @@ namespace tg1
                 }
 
 
-            }) ; 
+            });
         }
-        private  ReplyKeyboardMarkup GetButtonsReply()
+        private static ReplyKeyboardMarkup GetButtonsReply()
         {
 
 
@@ -759,10 +829,10 @@ namespace tg1
             {
                 ResizeKeyboard = true
             };
-            
-            
+
+
             return replyKeyboardMarkup;
-            
+
         }
 
 
@@ -774,7 +844,7 @@ namespace tg1
                 {
                      InlineKeyboardButton.WithCallbackData(text: "Периферия", "accesories"),
                     InlineKeyboardButton.WithCallbackData(text: "Чист средства", "clean"),
-                    
+
                 },
                 new[]
                 {
@@ -786,6 +856,10 @@ namespace tg1
 
             });
         }
+
+        
+
+
         
     }
     

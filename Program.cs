@@ -10,6 +10,7 @@ using System.Data;
 using Telegram.Bots.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using static System.Net.Mime.MediaTypeNames;
 using Telegram.Bot.Types;
 using Telegram.Bot.Exceptions;
@@ -17,16 +18,6 @@ using Telegram.Bots;
 using HtmlAgilityPack;
 using System.Diagnostics.Eventing.Reader;
 using System.Collections.Generic;
-using Quartz;
-using Quartz.Impl;
-
-
-
-
-
-
-
-
 
 namespace tg1
 {
@@ -52,30 +43,22 @@ namespace tg1
         }
         static BotState currentState = BotState.Main;
         static string state;
-
+        private Timer timer;
         
 
         static void Main(string[] args)
         {
             
             var bot = new TelegramBotClient("6655981877:AAHYzbmbjF3ZM5kzBQhuYADangqCCDptB04");
-
-           
-
+            
            
             bot.StartReceiving(Update, Error);
+
+           
+
             Console.ReadLine();
             
             
-
-            
-            
-
-            
-
-           
-
-
         }
 
         async private static Task Update(ITelegramBotClient bot, Update update, CancellationToken cts)
@@ -687,7 +670,7 @@ namespace tg1
                     if (remains != "нету даты")
                     {
 
-                            await bot.SendTextMessageAsync(message.Chat.Id, $"До окончания подачи заявок осталось: {remains} ");
+                            await bot.SendTextMessageAsync(message.Chat.Id, $"Внимание - окончание подачи заявок через {remains} \n   <a href='" + urlSub + $"'> ссылка </a> \n  - {nameApply} \n - {dateOfApply}", parseMode: ParseMode.Html);
                           
                     }
 
@@ -743,8 +726,10 @@ namespace tg1
 
             }) ; 
         }
-        private static ReplyKeyboardMarkup GetButtonsReply()
+        private  ReplyKeyboardMarkup GetButtonsReply()
         {
+
+
             ReplyKeyboardMarkup replyKeyboardMarkup = new(new[]
 
             {
@@ -803,77 +788,6 @@ namespace tg1
         }
         
     }
-    public class Scheduler
-    {
-
-
-
-        public async Task StartScheduler(DailyJobData data)
-        {
-
-            ISchedulerFactory sch = new StdSchedulerFactory();
-            IScheduler shcd = await sch.GetScheduler();
-            await shcd.Start();
-
-            var jobKey = new JobKey("dailyJob", "group1");
-            if (await shcd.CheckExists(jobKey))
-            {
-                await shcd.DeleteJob(jobKey);
-            }
-
-
-            IJobDetail job = JobBuilder.Create<DailyJob>()
-                .UsingJobData(new JobDataMap { {"data",data } })
-                .WithIdentity("dailyJob", "group1")
-                .Build();
-
-            ITrigger trigger = TriggerBuilder.Create()
-                .WithIdentity("dailyTrigger", "group1")
-                .StartNow()
-                .WithSimpleSchedule(x=> x
-                .WithRepeatCount(10)
-                .WithInterval(TimeSpan.FromSeconds(10)))
-                .Build();
-
-            await shcd.ScheduleJob(job, trigger);
-
-        }
-
-
-    }
-
-    public class DailyJob : IJob
-    {
-        public readonly DailyJobData data;
-
-        public DailyJob(DailyJobData date)
-        {
-
-            data = date;
-        }
-
-        public async Task Execute(IJobExecutionContext context)
-        {
-
-            await Program.CheckHourlyChanges(data.status,data.message,data.bot);
-
-        }
-
-
-
-    }
-
-    public class DailyJobData
-    {
-        public string status { get; set; }
-        public Message message { get; set; }
-        public ITelegramBotClient bot { get; set; }
-
-        public DailyJobData(string status, Message message, ITelegramBotClient bot)
-        {
-            this.message = message;
-            this.status = status;
-            this.bot = bot;
-        }
-    }
+    
+    
 }    

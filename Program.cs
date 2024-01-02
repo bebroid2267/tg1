@@ -95,8 +95,8 @@ namespace tg1
                     
                      if (days == 2)
                     {
-                        var times = 1800 * 1000;
-                        timer = new Timer(callback,null,100,60000);
+                        var times = (1800 * 1000);
+                        timer = new Timer(callback,null,100,times);
                         isTimerSet = 60;
                     }
                 }
@@ -105,15 +105,21 @@ namespace tg1
                     if (days == 1)
                     {
                         var times = 900 * 1000;
-                        timer = new Timer(callback, null, 100, 30000);
+                        timer = new Timer(callback, null, 100, times);
                         isTimerSet = 30;
 
 
                     }
+                    else if (days == 3)
+                    {
+                        var times = 9000000;
+                        timer = new Timer(callback, null, 100, times);
+                        isTimerSet = 15;
+                    }
                     else if (days == 2)
                     {
                         var times = 1800 * 1000;
-                        timer = new Timer(callback, null, 100, 60000);
+                        timer = new Timer(callback, null, 100, times);
                         isTimerSet = 60;
                     }
                 }
@@ -649,7 +655,7 @@ namespace tg1
             string newDateSub = string.Empty;
             string nameApply = string.Empty;
             int dayOfApply = 0;
-
+            int dayz2 = 0;
             int dayz = 0;
             if (message != null)
             {
@@ -712,7 +718,8 @@ namespace tg1
                             {
 
                                 await bot.SendTextMessageAsync(message.Chat.Id, $"Внимание - окончание подачи заявок через {remains} \n   <a href='" + urlSub + $"'> ссылка </a> \n  - {nameApply} \n - {dateOfApply}", parseMode: ParseMode.Html);
-
+                                
+                                
 
 
                                 if (remains == "1 день")
@@ -720,16 +727,17 @@ namespace tg1
                                     dayOfApply = 1;
                                     dayz = 1;
                                 }
+                                else if (remains == "1 час")
+                                {
+                                    dayz2 = 1;
+                                }
+
                                 else
                                 {
                                     dayOfApply = 2;
                                 }
                             }
-                            else if (remains.Contains("некорректная"))
-                            {
-                                await bot.SendTextMessageAsync(message.Chat.Id, $"ТЕСТ - УСПЕШНО - окончание подачи заявок через {remains} \n   <a href='" + urlSub + $"'> ссылка </a> \n  - {nameApply} \n - {dateOfApply}", parseMode: ParseMode.Html);
-
-                            }
+                            
                         }
                     }
                     catch (FormatException)
@@ -745,6 +753,10 @@ namespace tg1
             if (dayz == 1)
             {
                 return dayz;
+            }
+            else if (dayz2 == 1)
+            {
+                return 3;
             }
             else 
             {

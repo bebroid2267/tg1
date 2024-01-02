@@ -92,15 +92,8 @@ namespace tg1
 
                 if (timer != null && isTimerSet == 30)
                 {
-                    if (days == 1)
-                    {
-                        var times = 900 * 1000;
-                        timer = new Timer(callback,null,100,30000);
-                        isTimerSet = 30;
-
-
-                    }
-                    else if (days == 2)
+                    
+                     if (days == 2)
                     {
                         var times = 1800 * 1000;
                         timer = new Timer(callback,null,100,60000);

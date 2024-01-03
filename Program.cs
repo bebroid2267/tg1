@@ -47,7 +47,7 @@ namespace tg1
         static string state;
         private static Timer timer;
         private static int isTimerSet;
-        
+        private static Timer timer2;
 
         static void Main(string[] args)
         {
@@ -64,13 +64,61 @@ namespace tg1
 
         }
 
+        private static void GetTime(TimerCallback callback,Timer timer1, int days) 
+        {
+            if (timer1 != null && isTimerSet == 12)
+            {
+
+                if (days == 1)
+                {
+                    var oneHour = 60 * 60 * 1000;
+                    timer1 = new Timer(callback, null, 100, oneHour);
+                    
+                    isTimerSet = 1;
+                }
+
+            }
+            else if (timer1 == null)
+            {
+                if (days == 1)
+                {
+                    var oneHour = 60 * 60 * 1000;
+                    timer = new Timer(callback, null, 100, oneHour);
+                    
+                    isTimerSet = 1;
+
+
+                }
+                else if (days == 3)
+                {
+                    var minutes = 15 * 60 * 1000;
+                    timer1 = new Timer(callback, null, 100, minutes);
+                    
+                    isTimerSet = 15;
+                }
+                else if (days == 2)
+                {
+                    var hours = 12 * 60 * 60 * 1000;
+                    timer1 = new Timer(callback, null, 100, hours);
+                    
+                    isTimerSet = 12;
+                }
+                else if (days == 4)
+                {
+                    if (timer1 != null)
+                    {
+                        timer1.Dispose();
+                    }
+                    
+
+                }
+            }
+
+
+        }
         async private static Task Update(ITelegramBotClient bot, Update update, CancellationToken cts)
         {
             var message = update.Message;
-
-            
-
-
 
             if (update.Type == UpdateType.Message && update?.Message?.Text != null || update.Type == UpdateType.CallbackQuery)
             {
@@ -83,46 +131,22 @@ namespace tg1
                     await HandleCallbackQuery(bot, update.CallbackQuery);
                 }
                 int days = await CheckHourlyChanges("в работе", message, bot);
+                int work = await CheckHourlyChanges("подана",message, bot);
 
                 TimerCallback callback = new TimerCallback(async delegate (object state)
                 {
                    await CheckHourlyChanges("в работе", message, bot);
                     
                 });
-
-                if (timer != null && isTimerSet == 30)
+                TimerCallback callback2 = new TimerCallback(async delegate (object state)
                 {
-                    
-                     if (days == 2)
-                    {
-                        var times = (1800 * 1000);
-                        timer = new Timer(callback,null,100,times);
-                        isTimerSet = 60;
-                    }
-                }
-                else if (timer == null)
-                {
-                    if (days == 1)
-                    {
-                        var times = 900 * 1000;
-                        timer = new Timer(callback, null, 100, times);
-                        isTimerSet = 30;
+                    await CheckHourlyChanges("подана", message, bot);
 
+                });
+                GetTime(callback,timer,days);
+                GetTime(callback2,timer2,work);
 
-                    }
-                    else if (days == 3)
-                    {
-                        var times = 9000000;
-                        timer = new Timer(callback, null, 100, times);
-                        isTimerSet = 15;
-                    }
-                    else if (days == 2)
-                    {
-                        var times = 1800 * 1000;
-                        timer = new Timer(callback, null, 100, times);
-                        isTimerSet = 60;
-                    }
-                }
+                
                 
 
                 
@@ -593,10 +617,7 @@ namespace tg1
 
                 if (interval.Minutes >= 0)
                 {
-                    if (interval.Days > 3 && interval.Hours > 5)
-                    {
-                        return "много";
-                    }
+                    
                     if (interval.Days == 3)
                     {
                         return "3 дня";
@@ -620,6 +641,10 @@ namespace tg1
                         return "1 час";
                     }
                     return "нету даты";
+                }
+                else if (interval.Minutes <= -15 && interval.Minutes > -20)
+                {
+                    return "15 минут";
                 }
 
                 else
@@ -657,6 +682,7 @@ namespace tg1
             int dayOfApply = 0;
             int dayz2 = 0;
             int dayz = 0;
+            int endOfDate = 0;
             if (message != null)
             {
                 foreach (var apply in Baza.AllWork(status, 3))
@@ -707,6 +733,7 @@ namespace tg1
                     
                     try
                     {
+                        
                         if (dateOfApply != "не найдена дата")
                         {
 
@@ -714,12 +741,15 @@ namespace tg1
                             DateTime date = Convert.ToDateTime(dateOfApply);
                             string remains = CheckTimeApply(date);
 
-                            if (remains != "нету даты" && !remains.Contains("некорректная"))
+                            if (remains != "нету даты" && !remains.Contains("некорректная") && remains != "15 минут")
                             {
+                                if (status != "подана")
+                                {
+                                    await bot.SendTextMessageAsync(message.Chat.Id, $"Внимание - окончание подачи заявок через {remains} \n   <a href='" + urlSub + $"'> ссылка </a> \n  - {nameApply} \n - {dateOfApply}", parseMode: ParseMode.Html);
 
-                                await bot.SendTextMessageAsync(message.Chat.Id, $"Внимание - окончание подачи заявок через {remains} \n   <a href='" + urlSub + $"'> ссылка </a> \n  - {nameApply} \n - {dateOfApply}", parseMode: ParseMode.Html);
-                                
-                                
+                                }
+
+
 
 
                                 if (remains == "1 день")
@@ -737,7 +767,14 @@ namespace tg1
                                     dayOfApply = 2;
                                 }
                             }
-                            
+                            else if (remains == "15 минут")
+                            {
+                                await bot.SendTextMessageAsync(message.Chat.Id, $"Внимание - закончился срок приема заявок. \n   <a href='" + urlSub + $"'> ссылка </a> \n  - {nameApply} \n - {dateOfApply}", parseMode: ParseMode.Html);
+
+                                endOfDate = 1;
+
+                            }
+
                         }
                     }
                     catch (FormatException)
@@ -757,6 +794,10 @@ namespace tg1
             else if (dayz2 == 1)
             {
                 return 3;
+            }
+            else if (endOfDate == 1)
+            {
+                return 4;
             }
             else 
             {

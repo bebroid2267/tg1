@@ -198,27 +198,7 @@ namespace tg1
         }
 
 
-        //public static List<string> IfTenderChange(string status)
-        //{
-        //    using (var connection = new SqliteConnection(connectionString))
-        //    {
-        //        connection.Open();
-        //        var command = new SqliteCommand();
-        //        command.Connection = connection;
-
-                
-        //            command.CommandText = $"select Url from Apply where status like '{status}'";
-                    
-                
-                
-
-        //        connection.Close();
-        //        return command.ExecuteScalar() != null;
-
-        //    }
-
-
-        //}
+        
 
 
 

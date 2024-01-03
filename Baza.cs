@@ -13,8 +13,8 @@ namespace tg1
 {
     internal static class Baza
     {
-        public static readonly string connectionString = @"Data Source = " + Environment.CurrentDirectory
-            + @"\bd_telegram.db;";
+        public static readonly string connectionString = @"Data Source = /root/bot/bd_telegram.db";
+          
 
         public static List<string> GetUSers()
         {

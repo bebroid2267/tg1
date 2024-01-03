@@ -8,7 +8,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 using Microsoft.Data.SqlClient;
 using System.Data;
 using Telegram.Bots.Http;
-
+using System.Globalization;
 using System.Threading.Tasks;
 
 using static System.Net.Mime.MediaTypeNames;
@@ -608,12 +608,18 @@ namespace tg1
 
         private static string CheckTimeApply(DateTime dateapply)
         {
-            DateTime datenow = DateTime.Now;
+
+            DateTime utcTime = DateTime.UtcNow;
+            DateTimeOffset moscowTime = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTimeOffset.UtcNow, "Russian Standard Time");
+
+
+
+            
 
             try
             {
                 
-                TimeSpan interval = dateapply - datenow;
+                TimeSpan interval = dateapply - moscowTime;
 
                 if (interval.Minutes >= 0)
                 {
@@ -731,14 +737,13 @@ namespace tg1
 
                     }
                     
-                    try
-                    {
+                   
                         
                         if (dateOfApply != "не найдена дата")
                         {
 
 
-                            DateTime date = Convert.ToDateTime(dateOfApply);
+                        DateTime date = DateTime.ParseExact(dateOfApply,"dd.MM.yyyy",CultureInfo.InvariantCulture);
                             string remains = CheckTimeApply(date);
 
                             if (remains != "нету даты" && !remains.Contains("некорректная") && remains != "15 минут")
@@ -776,12 +781,11 @@ namespace tg1
                             }
 
                         }
-                    }
-                    catch (FormatException)
-                    {
+                    
+                    
 
-                        await bot.SendTextMessageAsync(message.Chat.Id, "ошибка в дате заявки (чек даты))");
-                    }
+                        //await bot.SendTextMessageAsync(message.Chat.Id, "ошибка в дате заявки (чек даты))");
+                    
 
 
                     count++;

@@ -78,6 +78,29 @@ namespace tg1
                 }
 
             }
+            else if (timer != null && isTimerSet == 1)
+            {
+                if (days == 3)
+                {
+                    var minutes = 15 * 60 * 1000;
+                    timer1 = new Timer(callback, null, 100, minutes);
+
+                    isTimerSet = 15;
+                }
+            }
+            else if (timer != null && isTimerSet == 15)
+            {
+                if (days == 4)
+                {
+                    if (timer1 != null)
+                    {
+                        timer1.Dispose();
+                    }
+                }
+            }
+
+
+
             else if (timer1 == null)
             {
                 if (days == 1)

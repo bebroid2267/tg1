@@ -64,8 +64,9 @@ namespace tg1
 
         }
 
-        private static async void ProcessWithTimer(Message message, int interval, ITelegramBotClient bot)
+        private static async Task ProcessWithTimer(Message message, ITelegramBotClient bot)
         {
+            int interval = await CheckEndsOfApply("в работе", message, bot);
             string count = string.Empty;
             switch (interval)
             {
@@ -91,11 +92,8 @@ namespace tg1
                     break;
             }
             await bot.SendTextMessageAsync(message.Chat.Id,$"сейчас бот работает каждые {count}");
-            Timer timerEnds = new Timer(state =>
-            {
-                ProcessWithTimer(message, interval, bot);
-            }, null, interval, Timeout.Infinite);
-                
+            await Task.Delay(interval);
+                await ProcessWithTimer(message, bot);
                 
 
         }
@@ -495,8 +493,8 @@ namespace tg1
                         
                         if (interval == 0)
                         {
-                            interval = await CheckEndsOfApply("в работе", message, bot);
-                            ProcessWithTimer(message,interval,bot);
+                            
+                            ProcessWithTimer(message,bot);
                             interval++;
                         }
                        
@@ -558,8 +556,8 @@ namespace tg1
 
                     if (intervalAdded == 0)
                     {
-                        intervalAdded = await CheckEndsOfApply("подана", message, bot);
-                        ProcessWithTimer(message, intervalAdded, bot);
+                         
+                        ProcessWithTimer(message, bot);
                         intervalAdded++;
                     }
 
@@ -620,11 +618,8 @@ namespace tg1
 
                 if (interval.Minutes >= 0)
                 {
-                    if (interval.Days >4)
-                    {
-                        return $"много: {interval.Days}";
-                    }
-                    if (interval.Days == 3)
+                    
+                    if (interval.Days == 3 && interval.Hours <= 2)
                     {
                         return "3 дня";
 
@@ -633,7 +628,7 @@ namespace tg1
                     {
                         return "2 дня";
                     }
-                    else if (interval.Days == 1)
+                    else if (interval.Days == 1 && interval.Hours <= 2)
                     {
                         return "1 день";
 
@@ -642,13 +637,13 @@ namespace tg1
                     {
                         return "2 часа";
                     }
-                    if (interval.Days == 0 && interval.Hours == 1)
+                    if (interval.Days == 0 && interval.Hours <= 1 && interval.Minutes >= 1)
                     {
                         return "1 час";
                     }
                     return "нету даты";
                 }
-                else if (interval.Minutes <= -15 && interval.Minutes > -20)
+                else if (( interval.Days == 0  || interval.Hours == -1) && interval.Minutes <= -15 && interval.Minutes !>= -40)
                 {
                     return "15 минут";
                 }
@@ -716,11 +711,12 @@ namespace tg1
                                 dayOfApply = 1;
                                 dayz = 1;
                             }
-                            else if (remains == "1 час")
+                            else if (remains == "1 час" || remains == "2 часа")
                             {
                                 dayz2 = 1;
                             }
                             
+
 
                             else
                             {

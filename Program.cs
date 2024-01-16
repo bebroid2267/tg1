@@ -64,9 +64,9 @@ namespace tg1
 
         }
 
-        private static async Task ProcessWithTimer(Message message, ITelegramBotClient bot )
+        private static async Task ProcessWithTimer(Message message, ITelegramBotClient bot ,string intervaladded)
         {
-            int interval = await CheckEndsOfApply("в работе", message, bot);
+            int intervaL = await CheckEndsOfApply("в работе", message, bot);
             string count = string.Empty;
             if (interval != 5)
             {
@@ -75,19 +75,19 @@ namespace tg1
                 switch (interval)
                 {
                     case 1:
-                        interval = 60 * 60 * 1000;
+                        intervaL = 60 * 60 * 1000;
                         count = "1 час";
                         break;
                     case 2:
-                        interval = 12 * 60 * 60 * 1000;
+                        intervaL = 12 * 60 * 60 * 1000;
                         count = "12 часов";
                         break;
                     case 3:
-                        interval = 15 * 60 * 1000;
+                        intervaL = 15 * 60 * 1000;
                         count = "15 минут";
                         break;
                     case 4:
-                        interval = 15 * 60 * 1000;
+                        intervaL = 15 * 60 * 1000;
                         count = "15 минут - истечение срока";
                         break;
 
@@ -95,10 +95,32 @@ namespace tg1
 
                         break;
                 }
-                await bot.SendTextMessageAsync(message.Chat.Id, $"сейчас бот работает каждые {count}");
-                await Task.Delay(interval);
-                await ProcessWithTimer(message, bot);
+                if (intervaladded == "не подана")
+                {
+                    interval = 1;
 
+                }
+                else if (intervaladded == "подана")
+                {
+                    intervalAdded = 1;
+                }
+                await bot.SendTextMessageAsync(message.Chat.Id, $"сейчас бот работает каждые {count}");
+                await Task.Delay(intervaL);
+                await ProcessWithTimer(message, bot,intervaladded);
+
+            }
+            else if (intervaL == 5)
+            {
+                await bot.SendTextMessageAsync(message.Chat.Id, $"сейчас бот неворк - так как нету заявок");
+                if (intervaladded == "не подана")
+                {
+                    interval = 0;
+
+                }
+                else if (intervaladded == "подана")
+                {
+                    intervalAdded = 0;
+                }
             }
 
         }
@@ -399,7 +421,7 @@ namespace tg1
                 currentState = BotState.Main;
                 try
                 {
-                    if (Baza.UpdateDateBase(mess, "28.01.2024") == true)
+                    if (Baza.UpdateDateBase(mess, "28.01.2024",message.Chat.Id) == true)
                     {
                         await bot.SendTextMessageAsync(message.Chat.Id, "Дата успешно изменена");
                     }
@@ -510,7 +532,7 @@ namespace tg1
 
 
 
-                    var result = Baza.AddTender(mess, numberOfApply, dateOfApply, nameOfApply, status, message.Chat.Id.ToString());
+                    var result = Baza.AddTender(mess, numberOfApply, dateOfApply, nameOfApply, status, message.Chat.Id.ToString(),message.Chat.Id);
 
                     if (result == true)
                     {
@@ -535,9 +557,9 @@ namespace tg1
                         if (interval == 0)
                         {
                             
-                            ProcessWithTimer(message,bot);
+                           await ProcessWithTimer(message,bot,"не подана");
                             
-                            interval++;
+                            
                         }
                        
                       
@@ -599,8 +621,8 @@ namespace tg1
                     if (intervalAdded == 0)
                     {
                          
-                        ProcessWithTimer(message, bot);
-                        intervalAdded++;
+                        await ProcessWithTimer(message, bot,"подана");
+                        
                     }
 
 
@@ -670,7 +692,7 @@ namespace tg1
                     {
                         return "2 дня";
                     }
-                    else if (interval.Days == 1 && interval.Hours <= 2)
+                    else if (interval.Days == 0 && interval.Hours >= 8)
                     {
                         return "1 день";
 
@@ -860,7 +882,7 @@ namespace tg1
                     if (dateOfApply != OlddateSub.TrimStart())
                     {
 
-                        Baza.UpdateDateBase(urlSub, dateOfApply);
+                        Baza.UpdateDateBase(urlSub, dateOfApply,message.Chat.Id);
 
                         updatedApply.Add(urlSub);
 

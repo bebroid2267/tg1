@@ -39,7 +39,7 @@ namespace tg1
             
         }
 
-        public static bool AddTender(string url, string numberOfApply, string dateEndReg, string nameApply, string status, string chatid )
+        public static bool AddTender(string url, string numberOfApply, string dateEndReg, string nameApply, string status, string chatid , long messageChatId)
         {
             using (var connection = new SqliteConnection(connectionString))
             {
@@ -47,7 +47,7 @@ namespace tg1
                 var command = new SqliteCommand();
 
                 command.Connection = connection;
-                if (IfTenderExists(url, out string none) == false)
+                if (IfTenderExists(url, out string none,messageChatId) == false)
                 {
                     command.CommandText = $"insert into Apply(Url,NumberApply,DateEndReg,NameApply,status,ChatId) values('{url}','{numberOfApply}','{dateEndReg}','{nameApply}','{status}','{chatid}') ";
                     command.ExecuteNonQuery();
@@ -69,7 +69,7 @@ namespace tg1
         }
 
 
-        public static bool UpdateDateBase(string url, string newDate)
+        public static bool UpdateDateBase(string url, string newDate, long messageChatId)
         {
 
             using (var connection = new SqliteConnection(connectionString))
@@ -79,7 +79,7 @@ namespace tg1
                 var command = new SqliteCommand();
                 command.Connection = connection;
 
-                if (IfTenderExists(url,out whatis) == true)
+                if (IfTenderExists(url,out whatis, messageChatId ) == true)
                 {
                     command.CommandText = $"update Apply set DateEndReg = '{newDate}' where Url like '{url}'";
                     command.ExecuteNonQuery();

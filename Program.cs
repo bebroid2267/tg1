@@ -557,7 +557,7 @@ namespace tg1
                         if (interval == 0)
                         {
                             
-                           await ProcessWithTimer(message,bot,"не подана");
+                            ProcessWithTimer(message,bot,"не подана");
                             
                             
                         }
@@ -621,7 +621,7 @@ namespace tg1
                     if (intervalAdded == 0)
                     {
                          
-                        await ProcessWithTimer(message, bot,"подана");
+                         ProcessWithTimer(message, bot,"подана");
                         
                     }
 

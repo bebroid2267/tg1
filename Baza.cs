@@ -122,7 +122,7 @@ namespace tg1
                 }
                 else
                 {
-                    command.CommandText = $"select Url, NameApply from Apply";
+                    command.CommandText = $"select Url, NameApply from Apply WHERE ChatId like '{messageChatId}'";
 
                 }
 

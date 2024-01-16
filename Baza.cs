@@ -99,7 +99,7 @@ namespace tg1
 
 
 
-        public static List<string> AllWork(string status, int choice)
+        public static List<string> AllWork(string status, int choice, long messageChatId)
         {
             using (var connection = new SqliteConnection(connectionString))
             {
@@ -112,12 +112,12 @@ namespace tg1
                 command.Connection = connection;
                 if (choice == 1)
                 { 
-                    command.CommandText = $"select Url, NameApply from Apply where status like '{status}' ";
+                    command.CommandText = $"select Url, NameApply from Apply where status like '{status}' AND ChatId like '{messageChatId}' ";
 
                 }
                 else if (choice == 3)
                 {
-                    command.CommandText = $"select Url, DateEndReg,NameApply, ChatId from Apply where status like '{status}' ";
+                    command.CommandText = $"select Url, DateEndReg,NameApply, ChatId from Apply where status like '{status}' AND ChatId like '{messageChatId}' ";
 
                 }
                 else
@@ -156,7 +156,7 @@ namespace tg1
 
 
         }
-        public static bool AddApply(string url, string status)
+        public static bool AddApply(string url, string status, long messageChatId)
         {
             using (var connection = new SqliteConnection(connectionString))
             {
@@ -165,7 +165,7 @@ namespace tg1
                  string whatis;
 
                 command.Connection = connection;
-                if (IfTenderExists(url, out whatis) == false)
+                if (IfTenderExists(url, out whatis, messageChatId) == false)
                 {
                     
                     connection.Close();
@@ -177,12 +177,12 @@ namespace tg1
                 {
                     if (whatis == "url")
                     {
-                        command.CommandText = $"update Apply set status = '{status}' where Url like '{url}' ";
+                        command.CommandText = $"update Apply set status = '{status}' where Url like '{url}' AND ChatId like '{messageChatId}' ";
 
                     }
                     else if (whatis == "number")
                     {
-                        command.CommandText = $"update Apply set status = '{status}' where NumberApply like '{url}'";
+                        command.CommandText = $"update Apply set status = '{status}' where NumberApply like '{url}' AND ChatId like '{messageChatId}'";
 
                     }
                     command.ExecuteNonQuery();
@@ -237,7 +237,7 @@ namespace tg1
 
         }
 
-        public static bool IfTenderExists(string url, out string whatis)
+        public static bool IfTenderExists(string url, out string whatis, long messageChatId)
         {
             using (var connection = new SqliteConnection(connectionString))
             {
@@ -247,12 +247,12 @@ namespace tg1
 
                 if (url.Contains("zakupki"))
                 {
-                    command.CommandText = $"select 1 from Apply where Url like '{url}' ";
+                    command.CommandText = $"select 1 from Apply where Url like '{url}' AND ChatId like '{messageChatId}' ";
                     whatis = "url";
                 }
                 else
                 {
-                    command.CommandText = $"select 1 from Apply where NumberApply like '{url}'";
+                    command.CommandText = $"select 1 from Apply where NumberApply like '{url}' AND ChatId like '{messageChatId}'";
                     whatis = "number";
                 }
 

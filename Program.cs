@@ -64,37 +64,42 @@ namespace tg1
 
         }
 
-        private static async Task ProcessWithTimer(Message message, ITelegramBotClient bot)
+        private static async Task ProcessWithTimer(Message message, ITelegramBotClient bot )
         {
             int interval = await CheckEndsOfApply("в работе", message, bot);
             string count = string.Empty;
-            switch (interval)
+            if (interval != 5)
             {
-                case 1:
-                    interval = 60 * 60 * 1000;
-                    count = "1 час";
-                    break;
-                case 2:
-                    interval = 12 * 60 * 60 * 1000;
-                    count = "12 часов";
-                    break;
-                case 3:
-                    interval = 15 * 60 * 1000;
-                    count = "15 минут";
-                    break;
-                case 4:
-                    interval = 15 * 60 * 1000;
-                    count = "15 минут - истечение срока";
-                    break;
 
-                default:
 
-                    break;
-            }
-            await bot.SendTextMessageAsync(message.Chat.Id,$"сейчас бот работает каждые {count}");
-            await Task.Delay(interval);
+                switch (interval)
+                {
+                    case 1:
+                        interval = 60 * 60 * 1000;
+                        count = "1 час";
+                        break;
+                    case 2:
+                        interval = 12 * 60 * 60 * 1000;
+                        count = "12 часов";
+                        break;
+                    case 3:
+                        interval = 15 * 60 * 1000;
+                        count = "15 минут";
+                        break;
+                    case 4:
+                        interval = 15 * 60 * 1000;
+                        count = "15 минут - истечение срока";
+                        break;
+
+                    default:
+
+                        break;
+                }
+                await bot.SendTextMessageAsync(message.Chat.Id, $"сейчас бот работает каждые {count}");
+                await Task.Delay(interval);
                 await ProcessWithTimer(message, bot);
-                
+
+            }
 
         }
 
@@ -120,8 +125,9 @@ namespace tg1
             }
 
         }
+        
 
-
+            
 
         async static Task HandleCallbackQuery(ITelegramBotClient bot, CallbackQuery? callbackQuery)
         {
@@ -256,7 +262,7 @@ namespace tg1
                 string urlSub = string.Empty;
                 int count = 1;
 
-                foreach (var apply in Baza.AllWork(status, count))
+                foreach (var apply in Baza.AllWork(status, count,message.Chat.Id))
                 {
                     int index = apply.IndexOf(' ');
                     urlSub = apply.Substring(0, index);
@@ -264,15 +270,27 @@ namespace tg1
 
 
 
+                    if (urlSub != null)
+                    {
+                        Apply += $"<a href='" + urlSub + $"'>Заявка № </a> \n " + infoSub + Environment.NewLine;
+                        count++;
+                    }
 
-
-                    Apply += $"<a href='" + urlSub + $"'>Заявка № </a> \n " + infoSub + Environment.NewLine;
-                    count++;
+                    
 
 
                 }
+                if (Apply.Contains("Заявка"))
+                {
+                    await bot.SendTextMessageAsync(message.Chat.Id, $"Список поданных: \n {Apply}", parseMode: ParseMode.Html);
 
-                await bot.SendTextMessageAsync(message.Chat.Id, $"Список поданных: \n {Apply}", parseMode: ParseMode.Html);
+
+                }
+                else if (!Apply.Contains("Заявка"))
+                {
+                    await bot.SendTextMessageAsync(message.Chat.Id, "вы не добавляли ни один тендер в поданные ");
+                }
+
 
                 return;
 
@@ -289,19 +307,31 @@ namespace tg1
                 string urlSub = string.Empty;
                 int count = 1;
 
-                foreach (var apply in Baza.AllWork("секс", 0))
+                foreach (var apply in Baza.AllWork("секс", 0,message.Chat.Id))
                 {
                     int index = apply.IndexOf(' ');
                     urlSub = apply.Substring(0, index);
                     infoSub = apply.Substring(index);
 
+                    if (urlSub != null)
+                    {
+                        Apply += $"<a href='" + urlSub + $"'>Заявка № {count}</a> \n " + infoSub + Environment.NewLine;
+                        count++;
 
+                    }
 
-                    Apply += $"<a href='" + urlSub + $"'>Заявка № {count}</a> \n " + infoSub + Environment.NewLine;
-                    count++;
+                    
+                }
+                if (Apply.Contains("Заявка"))
+                {
+                    await bot.SendTextMessageAsync(message.Chat.Id, $"Список в работе : \n {Apply}", parseMode: ParseMode.Html);
+
+                }
+                else if (!Apply.Contains("Заявка"))
+                {
+                    await bot.SendTextMessageAsync(message.Chat.Id, "вы не добавляли ни один тендер ");
                 }
 
-                await bot.SendTextMessageAsync(message.Chat.Id, $"Список в работе : \n {Apply}", parseMode: ParseMode.Html);
 
                 return;
 
@@ -317,19 +347,30 @@ namespace tg1
                 string urlSub = string.Empty;
                 int count = 1;
                 int choice = 1;
-                foreach (var apply in Baza.AllWork(status, choice))
+                foreach (var apply in Baza.AllWork(status, choice, message.Chat.Id))
                 {
                     int index = apply.IndexOf(' ');
                     urlSub = apply.Substring(0, index);
                     infoSub = apply.Substring(index);
 
+                    if (urlSub != null)
+                    {
+                        Apply += $"<a href='" + urlSub + $"'>Заявка № {count}</a> \n " + infoSub + Environment.NewLine;
+                        count++;
 
+                    }
 
-                    Apply += $"<a href='" + urlSub + $"'>Заявка № {count}</a> \n " + infoSub + Environment.NewLine;
-                    count++;
                 }
+                if (Apply.Contains("Заявка"))
+                {
+                    await bot.SendTextMessageAsync(message.Chat.Id, $"Список удаленных : \n {Apply}", parseMode: ParseMode.Html);
 
-                await bot.SendTextMessageAsync(message.Chat.Id, $"Список удаленных : \n {Apply}", parseMode: ParseMode.Html);
+                }
+                else if (!Apply.Contains("Заявка") )
+                {
+                    await bot.SendTextMessageAsync(message.Chat.Id, "вы не удаляли не один тендер");
+
+                }
 
                 return;
 
@@ -385,7 +426,7 @@ namespace tg1
 
                 var url = mess;
 
-                if (Baza.AddApply(url, status) == true)
+                if (Baza.AddApply(url, status,message.Chat.Id) == true)
                 {
                     await bot.DeleteMessageAsync(message.Chat.Id, message.MessageId);
 
@@ -495,6 +536,7 @@ namespace tg1
                         {
                             
                             ProcessWithTimer(message,bot);
+                            
                             interval++;
                         }
                        
@@ -541,7 +583,7 @@ namespace tg1
 
                 var url = mess;
 
-                if (Baza.AddApply(url, status) == true)
+                if (Baza.AddApply(url, status,message.Chat.Id) == true)
                 {
                     await bot.DeleteMessageAsync(message.Chat.Id, message.MessageId);
                     await bot.EditMessageTextAsync(message.Chat.Id, message.MessageId - 1, "Данный тендер отсутствует в боте");
@@ -616,7 +658,7 @@ namespace tg1
                 
                 TimeSpan interval = dateapply - moscowTime;
 
-                if (interval.Minutes >= 0)
+                if (interval.Minutes > 0)
                 {
                     
                     if (interval.Days == 3 && interval.Hours <= 2)
@@ -642,6 +684,10 @@ namespace tg1
                         return "1 час";
                     }
                     return "нету даты";
+                }
+                else if (interval.Minutes <= 0 && interval.Minutes !> -15)
+                {
+                    return "15 минут";
                 }
                 else if (( interval.Days == 0  || interval.Hours == -1) && interval.Minutes <= -15 && interval.Minutes !>= -40)
                 {
@@ -679,58 +725,63 @@ namespace tg1
             int endOfDate = 0;
             if (message != null)
             {
-                foreach (var apply in Baza.AllWork(status, 3))
+                foreach (var apply in Baza.AllWork(status, 3,message.Chat.Id))
                 {
 
-                    int index = apply.IndexOf(' ');
-                    int index2 = apply.IndexOf('_');
-                    int index3 = apply.LastIndexOf(' ');
-                    urlSub = apply.Substring(0, index);
-                    OlddateSub = apply.Substring(index, index2 - index);
-                    nameApply = apply.Substring(index2 + 1, index3 - index2);
-                    chatId = apply.Substring(index3);
-
-                    if (!OlddateSub.Contains("найдена"))
+                    if (apply.Contains("zakupki"))
                     {
-                        
+                        int index = apply.IndexOf(' ');
+                        int index2 = apply.IndexOf('_');
+                        int index3 = apply.LastIndexOf(' ');
+                        urlSub = apply.Substring(0, index);
+                        OlddateSub = apply.Substring(index, index2 - index);
+                        nameApply = apply.Substring(index2 + 1, index3 - index2);
+                        chatId = apply.Substring(index3);
 
-                        DateTime date = DateTime.ParseExact(OlddateSub.Trim(), "dd.MM.yyyy", CultureInfo.InvariantCulture);
-                        string remains = CheckTimeApply(date);
-                           
-                        if (remains != "нету даты" && !remains.Contains("некорректная") && remains != "15 минут")
+
+                        if (!OlddateSub.Contains("найдена"))
                         {
-                            
-                            if (status != "подана")
-                            {
-                                await bot.SendTextMessageAsync(message.Chat.Id, $"Внимание - окончание подачи заявок через {remains} \n   <a href='" + urlSub + $"'> ссылка </a> \n  - {nameApply} \n - {OlddateSub}", parseMode: ParseMode.Html);
 
+
+                            DateTime date = DateTime.ParseExact(OlddateSub.Trim(), "dd.MM.yyyy", CultureInfo.InvariantCulture);
+                            string remains = CheckTimeApply(date);
+
+                            if (remains != "нету даты" && !remains.Contains("некорректная") && remains != "15 минут")
+                            {
+
+                                if (status != "подана")
+                                {
+                                    await bot.SendTextMessageAsync(message.Chat.Id, $"Внимание - окончание подачи заявок через {remains} \n   <a href='" + urlSub + $"'> ссылка </a> \n  - {nameApply} \n - {OlddateSub}", parseMode: ParseMode.Html);
+
+                                }
+
+                                if (remains == "1 день")
+                                {
+                                    dayOfApply = 1;
+                                    dayz = 1;
+                                }
+                                else if (remains == "1 час" || remains == "2 часа")
+                                {
+                                    dayz2 = 1;
+                                }
+
+
+
+                                else
+                                {
+                                    dayOfApply = 2;
+                                }
                             }
-
-                            if (remains == "1 день")
+                            else if (remains == "15 минут")
                             {
-                                dayOfApply = 1;
-                                dayz = 1;
-                            }
-                            else if (remains == "1 час" || remains == "2 часа")
-                            {
-                                dayz2 = 1;
-                            }
-                            
+                                await bot.SendTextMessageAsync(message.Chat.Id, $"Внимание - закончился срок приема заявок. \n   <a href='" + urlSub + $"'> ссылка </a> \n  - {nameApply} \n - {OlddateSub}", parseMode: ParseMode.Html);
 
-
-                            else
-                            {
-                                dayOfApply = 2;
+                                endOfDate = 1;
                             }
                         }
-                        else if (remains == "15 минут")
-                        {
-                            await bot.SendTextMessageAsync(message.Chat.Id, $"Внимание - закончился срок приема заявок. \n   <a href='" + urlSub + $"'> ссылка </a> \n  - {nameApply} \n - {OlddateSub}", parseMode: ParseMode.Html);
-
-                            endOfDate = 1;
-                        }
+                        count++;
                     }
-                    count++;
+                    
                 }
             }
             if (dayz == 1)
@@ -744,6 +795,10 @@ namespace tg1
             else if (endOfDate == 1)
             {
                 return 4;
+            }
+            else if (dayz == 0  && dayz2 == 0 && endOfDate == 0 && dayOfApply == 0)
+            {
+                return 5;
             }
             else
             {
@@ -772,7 +827,7 @@ namespace tg1
             int endOfDate = 0;
             if (message != null)
             {
-                foreach (var apply in Baza.AllWork(status, 3))
+                foreach (var apply in Baza.AllWork(status, 3, message.Chat.Id))
                 {
 
                     int index = apply.IndexOf(' ');

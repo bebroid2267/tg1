@@ -711,7 +711,7 @@ namespace tg1
                 {
                     return "15 минут";
                 }
-                else if (( interval.Days == 0  || interval.Hours == -1) && interval.Minutes <= -15 && interval.Minutes !>= -40)
+                else if ( interval.Days == 0  && interval.Hours == 0 && interval.Minutes <= -15 && interval.Minutes !>= -40)
                 {
                     return "15 минут";
                 }

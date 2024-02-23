@@ -10,7 +10,6 @@ using System.Data;
 using Telegram.Bots.Http;
 using System.Globalization;
 using System.Threading.Tasks;
-
 using static System.Net.Mime.MediaTypeNames;
 using Telegram.Bot.Types;
 using Telegram.Bot.Exceptions;
@@ -39,16 +38,17 @@ namespace tg1
             Pars,
             TestHelp,
             Sex,
-            WorkList,
+            WorkList, 
             SubMenu2,
             SubMenu3,
         }
+
         static BotState currentState = BotState.Main;
-        static string state;
+
         private static Timer timer;
-        private static int isTimerSet;
-        private static Timer timer2;
+
        private static int interval = 0;
+
         private static int intervalAdded = 0;
 
         static void Main(string[] args)
@@ -56,11 +56,9 @@ namespace tg1
 
             var bot = new TelegramBotClient("6655981877:AAHYzbmbjF3ZM5kzBQhuYADangqCCDptB04");
 
-
             bot.StartReceiving(Update, Error);
             
             Console.ReadLine();
-
 
         }
 
@@ -72,7 +70,7 @@ namespace tg1
             {
 
 
-                switch (interval)
+                switch (intervaL)
                 {
                     case 1:
                         intervaL = 60 * 60 * 1000;
@@ -98,7 +96,6 @@ namespace tg1
                 if (intervaladded == "не подана")
                 {
                     interval = 1;
-
                 }
                 else if (intervaladded == "подана")
                 {
@@ -131,96 +128,19 @@ namespace tg1
         
         async private static Task Update(ITelegramBotClient bot, Update update, CancellationToken cts)
         {
-            var message = update.Message;
-
-            if (update.Type == UpdateType.Message && update?.Message?.Text != null || update.Type == UpdateType.CallbackQuery)
+            
+            if (update.Type == UpdateType.Message && update?.Message?.Text != null )
             {
                 if (update.Type == UpdateType.Message && update?.Message?.Text != null)
                 {
                     await HandleMessage(bot, update.Message);
                 }
-                if (update.Type == UpdateType.CallbackQuery)
-                {
-                    await HandleCallbackQuery(bot, update.CallbackQuery);
-                }
+                
                 
             }
 
         }
         
-
-            
-
-        async static Task HandleCallbackQuery(ITelegramBotClient bot, CallbackQuery? callbackQuery)
-        {
-            if (callbackQuery.Data == "item1")
-            {
-                await bot.SendTextMessageAsync(callbackQuery.Message.Chat.Id, "вы хотите купить товар1");
-                return;
-            }
-            else if (callbackQuery.Data == "soap")
-            {
-                state = "soap";
-                BotOnCallbackQueryReceived(bot, callbackQuery, state);
-            }
-            else if (callbackQuery.Data == "bback")
-            {
-                state = "soap";
-                BotOnCallbackQueryReceived(bot, callbackQuery, state);
-            }
-            else if (callbackQuery.Data == "back")
-            {
-                state = "back";
-                BotOnCallbackQueryReceived(bot, callbackQuery, state);
-            }
-
-            else if (callbackQuery.Data == "item2")
-            {
-                await bot.SendTextMessageAsync(callbackQuery.Message.Chat.Id, "вы хотите купить товар2");
-                return;
-            }
-            else if (callbackQuery.Data == "item3")
-            {
-                state = "item3";
-                BotOnCallbackQueryReceived(bot, callbackQuery, state);
-            }
-        }
-        private static async void BotOnCallbackQueryReceived(ITelegramBotClient bot, CallbackQuery callBackQueary, string state)
-        {
-            if (state == "soap")
-            {
-                await bot.EditMessageTextAsync(
-                callBackQueary.Message.Chat.Id,
-                callBackQueary.Message.MessageId,
-                $"Выберите какое именно мыло вы хотите",
-                replyMarkup: GetButtons1());
-            }
-            else if (state == "item3")
-            {
-                var keyboard = new InlineKeyboardMarkup(
-                    InlineKeyboardButton.WithCallbackData(text: "Назад", "bback"));
-
-                await bot.EditMessageTextAsync(
-                callBackQueary.Message.Chat.Id,
-                callBackQueary.Message.MessageId,
-                $"МЫЛО: \n Пиздатое \n Цена: 400 \n Вес: 500 грамм",
-                replyMarkup: keyboard);
-            }
-            else if (state == "back")
-            {
-
-
-                await bot.EditMessageTextAsync(
-                callBackQueary.Message.Chat.Id,
-                callBackQueary.Message.MessageId,
-                $"Выберите категорию: ",
-                replyMarkup: GetButtons2());
-
-            }
-
-
-        }
-
 
         async static Task HandleMessage(ITelegramBotClient bot, Message message)
         {
@@ -232,7 +152,7 @@ namespace tg1
                 Baza.RegisterUser("@" + message.Chat.Username, chatid);
 
                 currentState = BotState.Main;
-                await bot.SendTextMessageAsync(message.Chat.Id, "Добрйы день еблан выбери че хошь", replyMarkup: GetButtonsReply());
+                await bot.SendTextMessageAsync(message.Chat.Id, "<b>Приветствую! \n Нажми на кнпоку команд  слева снизу ⬇️ \n ✅ Отправь мне ссылку на тендер с сайта Госзакупок  \n ❇️ и я буду отслеживать окончание  подачи заявок</b>", parseMode: ParseMode.Html);
                 return;
             }
             else if (mess == "/users")
@@ -270,7 +190,6 @@ namespace tg1
                 message.Chat.Id,
                 $"Введите реестровый номер или ссылку на тендер:");
 
-
             }
 
 
@@ -290,16 +209,11 @@ namespace tg1
                     urlSub = apply.Substring(0, index);
                     infoSub = apply.Substring(index);
 
-
-
                     if (urlSub != null)
                     {
                         Apply += $"<a href='" + urlSub + $"'>Заявка № </a> \n " + infoSub + Environment.NewLine;
                         count++;
                     }
-
-                    
-
 
                 }
                 if (Apply.Contains("Заявка"))
@@ -327,6 +241,7 @@ namespace tg1
                 string Apply = string.Empty;
                 string infoSub = string.Empty;
                 string urlSub = string.Empty;
+
                 int count = 1;
 
                 foreach (var apply in Baza.AllWork("секс", 0,message.Chat.Id))
@@ -367,6 +282,7 @@ namespace tg1
                 string Apply = string.Empty;
                 string infoSub = string.Empty;
                 string urlSub = string.Empty;
+
                 int count = 1;
                 int choice = 1;
                 foreach (var apply in Baza.AllWork(status, choice, message.Chat.Id))
@@ -396,26 +312,8 @@ namespace tg1
 
                 return;
 
-
-
-
-
             }
-            else if (mess == "Поддержка")
-            {
-                currentState = BotState.TestHelp;
-                await bot.SendTextMessageAsync(message.Chat.Id, "Вставьте url тендера, Для тестовой смены даты заявки: ");
-                return;
-
-            }
-
-            else if (mess == "Секс" && currentState == BotState.Main)
-            {
-                currentState = BotState.Main;
-                await CheckHourlyChanges("в работе", message, bot);
-                return;
-
-            }
+            
             else if (currentState == BotState.TestHelp)
             {
                 currentState = BotState.Main;
@@ -429,7 +327,6 @@ namespace tg1
                     {
                         await bot.SendTextMessageAsync(message.Chat.Id, " Нет такого тендера");
                     }
-
 
                 }
                 catch (Exception)
@@ -457,8 +354,6 @@ namespace tg1
                 message.MessageId - 1,
                 $"Данный тендер отсутствует в боте");
 
-
-
                 }
 
                 else
@@ -469,7 +364,6 @@ namespace tg1
                 message.Chat.Id,
                 message.MessageId - 1,
                 $"Тендер убран в удаленные");
-
 
                 }
 
@@ -562,10 +456,6 @@ namespace tg1
                             
                         }
                        
-                      
-
-
-
                     }
                     else if (result == false)
                     {
@@ -578,13 +468,7 @@ namespace tg1
 
                     }
 
-
-
-
-
-
                     currentState = BotState.Main;
-
 
                 }
 
@@ -631,24 +515,13 @@ namespace tg1
 
             }
 
-            else if (mess.ToLower() == "товары")
-            {
-                await bot.SendTextMessageAsync(message.Chat.Id, "Выберите категорию:", replyMarkup: GetButtons2());
-                return;
-            }
-            else if (mess.ToLower() == "спарсить")
-            {
-                currentState = BotState.Pars;
-                await bot.SendTextMessageAsync(message.Chat.Id, "Вставьте ссылку на заявку");
-
-                return;
-            }
+            
 
 
             else
             {
                 currentState = BotState.Main;
-                await bot.SendTextMessageAsync(message.Chat.Id, "Главное меню 🥶");
+                await bot.SendTextMessageAsync(message.Chat.Id, "Ошибка 🥶");
                 return;
             }
 
@@ -707,7 +580,7 @@ namespace tg1
                     }
                     return "нету даты";
                 }
-                else if (interval.Minutes <= 0 && interval.Minutes !> -15)
+                else if (interval.Days == 0 && interval.Hours == 0 && interval.Minutes <= 0 && interval.Minutes !< -15)
                 {
                     return "15 минут";
                 }
@@ -734,17 +607,17 @@ namespace tg1
         {
             int count = 1;
 
-
-            
             string urlSub = string.Empty;
             string OlddateSub = string.Empty;
             string chatId = string.Empty;
             string newDateSub = string.Empty;
             string nameApply = string.Empty;
+
             int dayOfApply = 0;
             int dayz2 = 0;
             int dayz = 0;
             int endOfDate = 0;
+
             if (message != null)
             {
                 foreach (var apply in Baza.AllWork(status, 3,message.Chat.Id))
@@ -786,8 +659,6 @@ namespace tg1
                                 {
                                     dayz2 = 1;
                                 }
-
-
 
                                 else
                                 {
@@ -838,15 +709,13 @@ namespace tg1
 
 
             HtmlWeb html = new HtmlWeb();
+
             string urlSub = string.Empty;
             string OlddateSub = string.Empty;
             string chatId = string.Empty;
             string newDateSub = string.Empty;
             string nameApply = string.Empty;
-            int dayOfApply = 0;
-            int dayz2 = 0;
-            int dayz = 0;
-            int endOfDate = 0;
+            
             if (message != null)
             {
                 foreach (var apply in Baza.AllWork(status, 3, message.Chat.Id))
@@ -855,6 +724,7 @@ namespace tg1
                     int index = apply.IndexOf(' ');
                     int index2 = apply.IndexOf('_');
                     int index3 = apply.LastIndexOf(' ');
+
                     urlSub = apply.Substring(0, index);
                     OlddateSub = apply.Substring(index, index2 - index);
                     nameApply = apply.Substring(index2 + 1, index3 - index2);
@@ -892,115 +762,12 @@ namespace tg1
 
                     }
                     
-
-                       
-
-                    
-
                     count++;
                 }
                 await bot.SendTextMessageAsync(chatId, "ТЕСТ - каждые 12 часов проверка работоспособности таймера", parseMode: ParseMode.Html);
             }
            
         }
-
-
-        private static InlineKeyboardMarkup GetButtons1()
-        {
-            return new InlineKeyboardMarkup(new[]
-            {
-                new[]
-                {
-                   InlineKeyboardButton.WithCallbackData(text: "Товар1", "item1"),
-                    InlineKeyboardButton.WithCallbackData(text: "Товар2", "item2"),
-
-
-
-                },
-                new[]
-                {
-                    InlineKeyboardButton.WithCallbackData(text: "Товар3", "item3"),
-                    InlineKeyboardButton.WithCallbackData(text: "Товар4", "item4"),
-
-                },
-                new[]
-                {
-                InlineKeyboardButton.WithCallbackData(text: "Товар5", "item5"),
-                    InlineKeyboardButton.WithCallbackData(text: "Товар6", "item6"),
-                },
-
-                new[]
-                {
-                    InlineKeyboardButton.WithCallbackData(text: "Назад", "back"),
-
-                }
-
-
-            });
-        }
-        private static ReplyKeyboardMarkup GetButtonsReply()
-        {
-
-
-            ReplyKeyboardMarkup replyKeyboardMarkup = new(new[]
-
-            {
-
-                new KeyboardButton[]
-                {
-                    new KeyboardButton( "Спарсить" ),
-                     new KeyboardButton( "Товары" ),
-
-
-                },
-                new KeyboardButton[]
-                {
-                    new KeyboardButton( "Кабинет" ),
-                     new KeyboardButton( "Поддержка" ),
-
-
-                },
-                new KeyboardButton[]
-                {
-                    new KeyboardButton( "Промокод" ),
-                     new KeyboardButton( "Секс" ),
-
-                }
-
-            })
-            {
-                ResizeKeyboard = true
-            };
-
-
-            return replyKeyboardMarkup;
-
-        }
-
-
-        private static InlineKeyboardMarkup GetButtons2()
-        {
-            return new InlineKeyboardMarkup(new[]
-            {
-                new[]
-                {
-                     InlineKeyboardButton.WithCallbackData(text: "Периферия", "accesories"),
-                    InlineKeyboardButton.WithCallbackData(text: "Чист средства", "clean"),
-
-                },
-                new[]
-                {
-                    InlineKeyboardButton.WithCallbackData(text: "Мыло", "soap"),
-                    InlineKeyboardButton.WithCallbackData(text: "Бумага", "paper"),
-
-
-                }
-
-            });
-        }
-
-        
-
 
         
     }

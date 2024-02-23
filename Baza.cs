@@ -13,7 +13,9 @@ namespace tg1
 {
     internal static class Baza
     {
-        public static readonly string connectionString = @"Data Source = /root/bot/bd_telegram.db";
+        //public static readonly string connectionString = @"Data Source = /root/bot/bd_telegram.db";
+
+        public static readonly string connectionString = @"Data Source = C:\Users\кирилл\Desktop\bd_telegram.db";
         public static List<string> GetUSers()
         {
             using (var connection = new SqliteConnection(connectionString))
